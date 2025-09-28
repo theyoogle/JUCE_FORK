@@ -360,6 +360,7 @@ struct CADisplayLinkDeleter
 - (void) viewWillTransitionToSize: (CGSize) size withTransitionCoordinator: (id<UIViewControllerTransitionCoordinator>) coordinator;
 - (BOOL) prefersStatusBarHidden;
 - (UIStatusBarStyle) preferredStatusBarStyle;
+- (UIRectEdge) preferredScreenEdgesDeferringSystemGestures;
 
 - (void) viewDidLoad;
 - (void) viewWillAppear: (BOOL) animated;
@@ -663,10 +664,15 @@ MultiTouchMapper<UITouch*> UIViewComponentPeer::currentTouches;
     return [[[NSBundle mainBundle] objectForInfoDictionaryKey: @"UIStatusBarHidden"] boolValue];
 }
 
- - (BOOL) prefersHomeIndicatorAutoHidden
- {
-     return isKioskModeView (self);
- }
+//  - (BOOL) prefersHomeIndicatorAutoHidden
+//  {
+//      return isKioskModeView (self);
+//  }
+
+- (UIRectEdge) preferredScreenEdgesDeferringSystemGestures
+{
+    return UIRectEdgeAll;
+}
 
 - (UIStatusBarStyle) preferredStatusBarStyle
 {
