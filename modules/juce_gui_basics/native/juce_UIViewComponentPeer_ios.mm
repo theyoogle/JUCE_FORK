@@ -702,15 +702,16 @@ MultiTouchMapper<UITouch*> UIViewComponentPeer::currentTouches;
     return [super prefersStatusBarHidden];
 }
 
-//  - (BOOL) prefersHomeIndicatorAutoHidden
-//  {
-//      return isKioskModeView (self);
-//  }
+- (BOOL) prefersHomeIndicatorAutoHidden
+{
+    return isKioskModeView (self);
+}
 
 - (UIRectEdge) preferredScreenEdgesDeferringSystemGestures
 {
-    return UIRectEdgeAll;
+    return isKioskModeView (self) ? UIRectEdgeAll : UIRectEdgeNone;
 }
+
 
 - (UIStatusBarStyle) preferredStatusBarStyle
 {
@@ -749,6 +750,9 @@ MultiTouchMapper<UITouch*> UIViewComponentPeer::currentTouches;
 {
     sendScreenBoundsUpdate (self);
     [super viewDidAppear:animated];
+    
+    if (@available (iOS 11.0, *))
+        [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
 }
 
 - (void) viewWillLayoutSubviews
