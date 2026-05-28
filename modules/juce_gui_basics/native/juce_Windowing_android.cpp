@@ -2282,7 +2282,8 @@ private:
     CALLBACK (generatedCallback<&AndroidComponentPeer::mouseCallbackWrapper<&AndroidComponentPeer::handleMouseUpCallback>>,            "handleMouseUp",                 "(JIFFJ)V") \
     CALLBACK (generatedCallback<&AndroidComponentPeer::mouseCallbackWrapper<&AndroidComponentPeer::handleAccessibilityHoverCallback>>, "handleAccessibilityHover",      "(JIFFJ)V") \
 
-    DECLARE_JNI_CLASS_WITH_BYTECODE (ComponentPeerView, "com/rmsl/juce/ComponentPeerView", 24, javaComponentPeerView)
+    // DECLARE_JNI_CLASS_WITH_BYTECODE (ComponentPeerView, "com/rmsl/juce/ComponentPeerView", 24, javaComponentPeerView)
+    DECLARE_JNI_CLASS (ComponentPeerView, "com/rmsl/juce/ComponentPeerView")
    #undef JNI_CLASS_MEMBERS
 
     static jboolean textInputTargetIsTextInputActive (JNIEnv*, const TextInputTarget& t)
