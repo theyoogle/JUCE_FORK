@@ -16,7 +16,7 @@
    framework to you, and you must discontinue the installation or download
    process and cease use of the JUCE framework.
 
-   JUCE End User Licence Agreement: https://juce.com/legal/juce-8-licence/
+   JUCE End User Licence Agreement: https://juce.com/legal/juce-9-licence/
    JUCE Privacy Policy: https://juce.com/juce-privacy-policy
    JUCE Website Terms of Service: https://juce.com/juce-website-terms-of-service/
 
@@ -4583,6 +4583,24 @@ private:
         result.pluginFormatName     = LV2PluginFormatHeadless::getFormatName();
         result.numInputChannels     = static_cast<int> (numInputs);
         result.numOutputChannels    = static_cast<int> (numOutputs);
+
+        JUCE_BEGIN_IGNORE_WARNINGS_MSVC (4702)
+        const auto getValue = [&] (const char* propertyName)
+        {
+            for (const auto* item : wrapped.getValue (world->newUri (propertyName).get()))
+                return lv2_host::lilvNodeToString (item);
+
+            return String{};
+        };
+        JUCE_END_IGNORE_WARNINGS_MSVC
+
+        result.version = std::invoke ([&]
+        {
+            StringArray versionComponents { getValue (LV2_CORE__minorVersion),
+                                            getValue (LV2_CORE__microVersion) };
+            versionComponents.removeEmptyStrings();
+            return versionComponents.joinIntoString (".");
+        });
 
         const auto classPtr     = wrapped.getClass();
         const auto classes      = collectPluginClassUris (classPtr);

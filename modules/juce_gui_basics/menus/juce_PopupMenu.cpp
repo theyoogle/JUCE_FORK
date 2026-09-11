@@ -16,7 +16,7 @@
    framework to you, and you must discontinue the installation or download
    process and cease use of the JUCE framework.
 
-   JUCE End User Licence Agreement: https://juce.com/legal/juce-8-licence/
+   JUCE End User Licence Agreement: https://juce.com/legal/juce-9-licence/
    JUCE Privacy Policy: https://juce.com/juce-privacy-policy
    JUCE Website Terms of Service: https://juce.com/juce-website-terms-of-service/
 
@@ -384,9 +384,21 @@ struct MenuWindow final : public Component, private AsyncUpdater
             if (shouldDisableAccessibility)
                 setAccessible (false);
 
+            const auto windowsMultiTouchFlag = std::invoke ([&]
+            {
+                if (auto* topComponent = options.getTopLevelTargetComponent())
+                    if (auto* topPeer = topComponent->getPeer())
+                        return topPeer->canWindowsUseMultiTouch();
+
+                return false;
+            });
+
             addToDesktop (ComponentPeer::windowIsTemporary
                           | ComponentPeer::windowIgnoresKeyPresses
                           | lf.getMenuWindowFlags());
+
+            if (auto* peer = getPeer())
+                peer->setWindowsCanUseMultiTouch (windowsMultiTouchFlag);
         }
 
         // Using a global mouse listener means that we get notifications about all mouse events.
@@ -645,13 +657,19 @@ struct MenuWindow final : public Component, private AsyncUpdater
         if (! isShowing())
             return;
 
-        auto* accessibleFocus = std::invoke ([this]
+        auto* accessibleFocus = std::invoke ([this]() -> AccessibilityHandler*
         {
             if (currentChild != nullptr)
                 if (auto* childHandler = currentChild->getAccessibilityHandler())
                     return childHandler;
 
-            return getAccessibilityHandler();
+            if (auto* handler = getAccessibilityHandler())
+            {
+                const auto children = handler->getChildren();
+                return children.empty() ? handler : children.front();
+            }
+
+            return nullptr;
         });
 
         if (accessibleFocus != nullptr)
