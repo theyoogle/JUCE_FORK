@@ -4083,7 +4083,8 @@ void XWindowSystem::handleClientMessageEvent (LinuxComponentPeer* peer, XClientM
         }
         else if (atom == atoms.protocolList [XWindowSystemUtilities::Atoms::DELETE_WINDOW])
         {
-            peer->handleUserClosingWindow();
+            if (! peer->getComponent().isCurrentlyBlockedByAnotherModalComponent())
+                peer->handleUserClosingWindow();
         }
     }
     else if (clientMsg.message_type == atoms.XdndEnter)
@@ -4177,6 +4178,11 @@ void XWindowSystem::handleXIDeviceEvent (LinuxComponentPeer* peer, int eventType
     const auto touchPos = getLogicalMousePos (eventPos, *peer);
     const auto time = getEventTime (deviceEvent.time);
 
+    const auto touchFlags = eventType == XI_TouchEnd ? 0 : ModifierKeys::leftButtonModifier;
+    ModifierKeys::currentModifiers = ModifierKeys::getCurrentModifiers().withoutMouseButtons()
+                                                                        .withFlags (touchFlags);
+    const auto modsToSend = ModifierKeys::getCurrentModifiers();
+
     const auto sendTouchEvent = [peer, time, touchIndex] (Point<float> pos, ModifierKeys mods)
     {
         peer->handleMouseEvent (MouseInputSource::InputSourceType::touch,
@@ -4197,7 +4203,7 @@ void XWindowSystem::handleXIDeviceEvent (LinuxComponentPeer* peer, int eventType
         case XI_TouchBegin:
         {
             // This forces a mouse-enter/up event, in case we didn't get one before.
-            if (! sendTouchEvent (touchPos, ModifierKeys{}))
+            if (! sendTouchEvent (touchPos, modsToSend.withoutMouseButtons()))
                 return;
 
             break;
@@ -4209,13 +4215,11 @@ void XWindowSystem::handleXIDeviceEvent (LinuxComponentPeer* peer, int eventType
         }
     }
 
-    const auto mouseKeys = eventType == XI_TouchEnd ? ModifierKeys{}
-                                                    : ModifierKeys{}.withFlags (ModifierKeys::leftButtonModifier);
-    if (! sendTouchEvent (touchPos, mouseKeys))
+    if (! sendTouchEvent (touchPos, modsToSend))
         return;
 
     if (eventType == XI_TouchEnd)
-        sendTouchEvent (MouseInputSource::offscreenMousePos, ModifierKeys{});
+        sendTouchEvent (MouseInputSource::offscreenMousePos, modsToSend.withoutMouseButtons());
 }
 
 void XWindowSystem::updateXInputDevices() const
